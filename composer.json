@@ -1,0 +1,23 @@
+{
+  "name": "opencart/forumpay",
+  "description": "Crypto payment gateway",
+  "type": "opencart-module",
+  "version": "2.1.1",
+  "require": {
+    "php": ">=7.4",
+    "forumpay/payment-gateway-php-client": "^1.1.1",
+    "psr/log":"^1.1.4",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "ForumPay\\PaymentGateway\\OpenCartExtension\\": "."
+    }
+  },
+  "config": {
+    "preferred-install": "dist",
+    "allow-plugins": {
+      "composer/installers": true
+    }
+  }
+}

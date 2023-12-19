@@ -1,0 +1,8 @@
+<div class="text-end">
+  <button type="button" id="button-confirm" class="btn btn-primary">{{ confirm_button }}</button>
+</div>
+<script type="text/javascript">
+  $('#button-confirm').on('click', () => {
+    window.location.replace('index.php?route=extension/forumpay/payment/forumpay.widget');
+  });
+</script>

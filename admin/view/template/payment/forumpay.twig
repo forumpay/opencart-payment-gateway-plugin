@@ -1,0 +1,310 @@
+{{ page_elements.header }}{{ page_elements.column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end">
+        <button
+          type="submit"
+          form="form-payment"
+          data-bs-toggle="tooltip"
+          class="btn btn-primary"
+          aria-label="Save"
+          data-bs-original-title="Save">
+          <i class="fa-solid fa-save"></i>
+        </button>
+        <a
+          href="{{ cancel }}"
+          data-bs-toggle="tooltip"
+          class="btn btn-light"
+          aria-label="Back"
+          data-bs-original-title="Back">
+          <i class="fa-solid fa-reply"></i>
+        </a>
+      </div>
+      <h1>{{ text.text_title }}</h1>
+      <ol class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+          <li class="breadcrumb-item">
+            <a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a>
+          </li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  <div class="container-fluid">
+    {% if success %}
+      <div class="alert alert-success" role="alert">
+        {{ text.text_success }}
+      </div>
+    {% endif %}
+    {% if not success %}
+      {% if errors|length > 0 %}
+        {% for error in errors %}
+          <div class="alert alert-danger" role="alert">
+            {{ error }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endif %}
+    <div class="card">
+      <div class="card-header">
+        <i class="fa-solid fa-pencil"></i>
+        {{ text.edit_text }}
+      </div>
+      <div class="card-body">
+        <form id="form-payment" action="{{ save }}" method="post" enctype="multipart/form-data">
+          <div class="row mb-3">
+            <label for="{{ config.name.title }}" class="col-sm-2 col-form-label">Title</label>
+            <div class="col-sm-10">
+              <input
+                type="text"
+                name="{{ config.name.title }}"
+                value="{{ config.value.payment_forumpay_title|default('Pay with crypto') }}"
+                id="{{ config.name.title }}"
+                class="form-control"
+                required
+              >
+              <small class="form-text text-muted">{{ text.text_form_title }}</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="{{ config.name.description }}" class="col-sm-2 col-form-label">Description</label>
+            <div class="col-sm-10">
+              <input
+                type="text"
+                name="{{ config.name.description }}"
+                value="{{ config.value.payment_forumpay_description|default('Pay with crypto. (by ForumPay)') }}"
+                id="{{ config.name.description }}"
+                class="form-control"
+                required
+              >
+              <small class="form-text text-muted">{{ text.text_form_description }}</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="{{ config.name.api_url }}" class="col-sm-2 col-form-label">API URL</label>
+            <div class="col-sm-10">
+              <select
+                name="{{ config.name.api_url }}"
+                id="{{ config.name.api_url }}"
+                class="form-select"
+              >
+                <option
+                  value="https://api.forumpay.com/pay/v2/"
+                  {% if config.value.payment_forumpay_api_url == "https://api.forumpay.com/pay/v2/" %}
+                    selected="selected"
+                  {% endif %}
+                >
+                  Production
+                </option>
+                <option
+                  value="https://sandbox.api.forumpay.com/pay/v2/"
+                  {% if config.value.payment_forumpay_api_url == "https://sandbox.api.forumpay.com/pay/v2/" %}
+                    selected="selected"
+                  {% endif %}
+                >
+                  Sandbox
+                </option>
+              </select>
+              <small class="form-text text-muted">{{ text.text_form_environment }}</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="{{ config.name.api_user }}" class="col-sm-2 col-form-label">API User</label>
+            <div class="col-sm-10">
+              <input
+                type="text"
+                name="{{ config.name.api_user }}"
+                value="{{ config.value.payment_forumpay_api_user }}"
+                id="{{ config.name.api_user }}"
+                class="form-control"
+                required
+              >
+              <small class="form-text text-muted">{{ text.text_form_api_user }}</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="{{ config.name.api_key }}" class="col-sm-2 col-form-label">API Secret</label>
+            <div class="col-sm-10">
+              <input
+                type="password"
+                name="{{ config.name.api_key }}"
+                value="{{ config.value.payment_forumpay_api_key }}"
+                id="{{ config.name.api_key }}"
+                class="form-control"
+                required
+              >
+              <small class="form-text text-muted">{{ text.text_form_api_key }}</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="{{ config.name.pos_id }}" class="col-sm-2 col-form-label">POS ID</label>
+            <div class="col-sm-10">
+              <input
+                type="text"
+                name="{{ config.name.pos_id }}"
+                value="{{ config.value.payment_forumpay_pos_id }}"
+                id="{{ config.name.pos_id }}"
+                class="form-control"
+                required
+              >
+              <small class="form-text text-muted">{{ text.text_form_pos_id }}</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="{{ config.name.initial_order_status }}" class="col-sm-2 col-form-label">Initial Order Status</label>
+            <div class="col-sm-10">
+              <select name="{{ config.name.initial_order_status }}" id="{{ config.name.initial_order_status }}" class="form-select">
+                {% for order_status in order_statuses %}
+                  <option
+                    value="{{ order_status.order_status_id }}"
+                    {% if order_status.order_status_id == config.value.payment_forumpay_initial_order_status %}
+                      selected
+                    {% endif %}
+                  >
+                    {{ order_status.name }}
+                  </option>
+                {% endfor %}
+              </select>
+              <small class="form-text text-muted">{{ text.text_form_initial_order_status }}</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="{{ config.name.cancelled_order_status }}" class="col-sm-2 col-form-label">Cancelled Order Status</label>
+            <div class="col-sm-10">
+              <select name="{{ config.name.cancelled_order_status }}" id="{{ config.name.cancelled_order_status }}" class="form-select">
+                {% for order_status in order_statuses %}
+                  <option
+                    value="{{ order_status.order_status_id }}"
+                    {% if order_status.order_status_id == config.value.payment_forumpay_cancelled_order_status %}
+                      selected
+                    {% endif %}
+                  >
+                    {{ order_status.name }}
+                  </option>
+                {% endfor %}
+              </select>
+              <small class="form-text text-muted">{{ text.text_form_cancelled_order_status }}</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="{{ config.name.success_order_status }}" class="col-sm-2 col-form-label">Success Order Status</label>
+            <div class="col-sm-10">
+              <select name="{{ config.name.success_order_status }}" id="{{ config.name.success_order_status }}" class="form-select">
+                {% for order_status in order_statuses %}
+                  <option
+                    value="{{ order_status.order_status_id }}"
+                    {% if order_status.order_status_id == config.value.payment_forumpay_success_order_status %}
+                      selected
+                    {% endif %}
+                  >
+                    {{ order_status.name }}
+                  </option>
+                {% endfor %}
+              </select>
+              <small class="form-text text-muted">{{ text.text_form_success_order_status }}</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="{{ config.name.sort_order }}" class="col-sm-2 col-form-label">
+              Sort order
+            </label>
+            <div class="col-sm-10">
+              <input
+                type="number"
+                name="{{ config.name.sort_order }}"
+                value="{{ config.value.payment_forumpay_sort_order }}"
+                id="{{ config.name.sort_order }}"
+                class="form-control"
+              >
+              <small class="form-text text-muted">{{ text.text_form_sort_order }}</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="{{ config.name.api_url_override }}" class="col-sm-2 col-form-label">
+              API Url override
+            </label>
+            <div class="col-sm-10">
+              <input
+                type="text"
+                name="{{ config.name.api_url_override }}"
+                value="{{ config.value.payment_forumpay_api_url_override }}"
+                id="{{ config.name.api_url_override }}"
+                class="form-control"
+              >
+              <small class="form-text text-muted">{{ text.text_form_api_url_override }}</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="{{ config.name.debug }}" class="col-sm-2 col-form-label">
+              Debug
+            </label>
+            <div class="col-sm-10">
+              <div class="form-check form-switch form-switch-lg">
+                <input
+                  type="hidden"
+                  name="{{ config.name.debug }}"
+                  value="0"
+                >
+                <input
+                  type="checkbox"
+                  name="{{ config.name.debug }}"
+                  value="1"
+                  id="{{ config.name.debug }}"
+                  class="form-check-input"
+                  {{ config.value.payment_forumpay_debug == "1" ? 'checked' }}
+                >
+              </div>
+              <small class="form-text text-muted">{{ text.text_form_debug }}</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="{{ config.name.accept_zero_confirmations }}" class="col-sm-2 col-form-label">
+              Accept zero confirmations
+            </label>
+            <div class="col-sm-10">
+              <div class="form-check form-switch form-switch-lg">
+                <input
+                  type="hidden"
+                  name="{{ config.name.accept_zero_confirmations }}"
+                  value="0"
+                >
+                <input
+                  type="checkbox"
+                  name="{{ config.name.accept_zero_confirmations }}"
+                  value="1"
+                  id="{{ config.name.accept_zero_confirmations }}"
+                  class="form-check-input"
+                  {{ config.value.payment_forumpay_accept_zero_confirmation == "1" ? 'checked' }}
+                >
+              </div>
+              <small class="form-text text-muted">{{ text.text_form_accept_zero_confirmations }}</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="{{ config.name.enabled }}" class="col-sm-2 col-form-label">Enabled</label>
+            <div class="col-sm-10">
+              <div class="form-check form-switch form-switch-lg">
+                <input
+                  type="hidden"
+                  name="{{ config.name.enabled }}"
+                  value="0"
+                >
+                <input
+                  type="checkbox"
+                  name="{{ config.name.enabled }}"
+                  value="1"
+                  id="{{ config.name.enabled }}"
+                  class="form-check-input"
+                  {{ config.value.payment_forumpay_status == "1" ? 'checked' }}
+                >
+              </div>
+              <small class="form-text text-muted">{{ text.text_form_enable }}</small>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{{ page_elements.footer }}
