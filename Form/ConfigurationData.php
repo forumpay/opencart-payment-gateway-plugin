@@ -71,8 +71,10 @@ class ConfigurationData
             $errors[] = 'POS ID field includes invalid characters. Allowed are: A-Za-z0-9._-';
         }
 
-        if (false === filter_var($config[self::FORUMPAY_API_URL_OVERRIDE], FILTER_VALIDATE_URL)) {
-            $errors[] = 'Custom environment URL must be valid URL.';
+        if (isset($config[self::FORUMPAY_API_URL_OVERRIDE]) && $config[self::FORUMPAY_API_URL_OVERRIDE]) {
+            if (false === filter_var($config[self::FORUMPAY_API_URL_OVERRIDE], FILTER_VALIDATE_URL)) {
+                $errors[] = 'Custom environment URL must be valid URL.';
+            }
         }
 
         return $errors;
