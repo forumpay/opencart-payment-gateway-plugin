@@ -1,4 +1,4 @@
-# OpenCart Forumpay payment module
+# ForumPay Crypto Payments for OpenCart
 # Installation guide
 
 ## Requirements

@@ -1,6 +1,6 @@
 <?php
 
-$_['heading_title'] = 'ForumPay';
+$_['heading_title'] = 'ForumPay Crypto Payments';
 $_['edit_settings'] = 'Edit ForumPay Settings';
 $_['text_home'] = 'Home';
 $_['text_extension'] = 'Extensions';
@@ -19,4 +19,4 @@ $_['text_form_success_order_status'] = 'Order status assigned to successful orde
 $_['text_form_sort_order'] = 'This value determines the display order of the payment method. A lower number indicates a higher priority, resulting in placement at the top.';
 $_['text_form_accept_zero_confirmations'] = 'Enable Accept Zero Confirmations.';
 $_['text_form_debug'] = 'Enable debug log level.';
-$_['text_form_enable'] = 'Enable ForumPay Payment Module.';
+$_['text_form_enable'] = 'Enable ForumPay Crypto Payments.';

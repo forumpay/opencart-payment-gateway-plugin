@@ -56,9 +56,8 @@ class ForumPay
             $configuration->getMerchantApiUser(),
             $configuration->getMerchantApiSecret(),
             sprintf(
-                'fp-pgw[%s] PS %s on PHP %s',
+                'fp-pgw[%s] OpenCart %s on PHP %s',
                 $configuration->getPluginVersion(),
-                'WC',
                 $configuration->getOpenCartVersion(),
                 phpversion()
             ),
