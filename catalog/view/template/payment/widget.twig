@@ -5,9 +5,19 @@
     <span id="forumpay-apibase" data="{{ apiBase }}"></span>
     <span id="forumpay-returnurl" data="{{ returnUrl }}"></span>
     <span id="forumpay-cancelurl" data="{{ cancelUrl }}"></span>
+    <span id="forumpay-invoiceamount" data="{{ invoiceAmount }}"></span>
+    <span id="forumpay-invoicecurrency" data="{{ invoiceCurrency }}"></span>
+    <span id="forumpay-payerfirstname" data="{{ payerFirstName }}"></span>
+    <span id="forumpay-payerlastname" data="{{ payerLastName }}"></span>
+    <span id="forumpay-payeremail" data="{{ payerEmail }}"></span>
+    <span id="forumpay-payercompany" data="{{ payerCompany }}"></span>
+    <span id="forumpay-payercountry" data="{{ payerCountry }}"></span>
   </div>
 </div>
 <script type="text/javascript">
-  document.getElementById("header-cart").remove();
+  var headerCart = document.getElementById("header-cart");
+  if (headerCart) {
+    headerCart.remove();
+  }
 </script>
 {{ footer }}

@@ -226,8 +226,8 @@ class OrderManager
      */
     public function saveOrderMetaData(string $orderId, string $paymentId, array $data, bool $update = false): bool
     {
-        return $update ? $this->checkoutTransactions->update($orderId, $paymentId, $data)
-                : $this->checkoutTransactions->insert($orderId, $paymentId, $data);
+        return $update ? $this->checkoutTransactions->update((int) $orderId, $paymentId, $data)
+                : $this->checkoutTransactions->insert((int) $orderId, $paymentId, $data);
     }
 
     /**

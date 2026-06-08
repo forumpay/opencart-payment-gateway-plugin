@@ -18,6 +18,12 @@ const initPlugin = function () {
         'act': 'getRate'
       },
     },
+    restGetRatesUri: {
+      'path': '',
+      'params': {
+        'act': 'getRates'
+      },
+    },
     restStartPaymentUri: {
       'path': '',
       'params': {
@@ -42,11 +48,30 @@ const initPlugin = function () {
         'act': 'restoreCart'
       }
     },
+    restGetWalletAppsUri: {
+      'path': '',
+      'params': {
+        'act': 'getWalletApps'
+      }
+    },
     successResultUrl: forumPayData('forumpay-returnurl'),
     errorResultUrl: forumPayData('forumpay-cancelurl'),
+    invoiceAmount: forumPayData('forumpay-invoiceamount'),
+    invoiceCurrency: forumPayData('forumpay-invoicecurrency'),
+    payer: {
+      'payer_type': '',
+      'payer_first_name': forumPayData('forumpay-payerfirstname'),
+      'payer_last_name': forumPayData('forumpay-payerlastname'),
+      'payer_country_of_residence': forumPayData('forumpay-payercountry'),
+      'payer_email': forumPayData('forumpay-payeremail'),
+      'payer_date_of_birth': '',
+      'payer_country_of_birth': '',
+      'payer_company': forumPayData('forumpay-payercompany'),
+      'payer_date_of_incorporation': '',
+      'payer_country_of_incorporation': forumPayData('forumpay-payercountry'),
+    },
     messageReceiver: function (name, data) {
     },
-    showStartPaymentButton: true,
   }
   window.forumPayPaymentGatewayWidget = new ForumPayPaymentGatewayWidget(config);
   window.forumPayPaymentGatewayWidget.init();

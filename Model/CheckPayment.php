@@ -88,6 +88,10 @@ class CheckPayment
                 $response->getPrintString(),
                 $response->getState(),
                 $underPayment ?? null,
+                $response->getItemName(),
+                $response->getInvoiceSurchargeAmount(),
+                $response->getInvoiceAmountWithSurcharge(),
+                $response->getInvoiceSurchargePercent()
             );
 
             $this->logger->info('CheckPayment entrypoint finished.');

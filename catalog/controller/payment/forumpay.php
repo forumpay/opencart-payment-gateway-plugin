@@ -59,6 +59,9 @@ class ForumPay extends \Opencart\System\Engine\Controller
             true
         );
 
+        // Get order details for payer data pre-fill
+        $orderInfo = $order->getOrder($this->session->data['order_id']);
+
         $this->response->setOutput($this->load->view('extension/forumpay/payment/widget', [
             'header' => $this->load->controller('common/header'),
             'column_left' => $this->load->controller('common/column_left'),
@@ -70,6 +73,13 @@ class ForumPay extends \Opencart\System\Engine\Controller
             ),
             'returnUrl' =>  $this->url->link('checkout/success'),
             'cancelUrl' => $this->url->link('checkout/cart'),
+            'invoiceAmount' => $orderInfo['total'] ?? '',
+            'invoiceCurrency' => $orderInfo['currency_code'] ?? '',
+            'payerFirstName' => $orderInfo['payment_firstname'] ?: ($orderInfo['firstname'] ?? ''),
+            'payerLastName' => $orderInfo['payment_lastname'] ?: ($orderInfo['lastname'] ?? ''),
+            'payerEmail' => $orderInfo['email'] ?? '',
+            'payerCompany' => $orderInfo['payment_company'] ?? '',
+            'payerCountry' => $orderInfo['payment_iso_code_2'] ?: ($orderInfo['payment_country'] ?? ''),
         ]));
     }
 
@@ -173,11 +183,14 @@ class ForumPay extends \Opencart\System\Engine\Controller
         $this->routes = [
             'currencies'    => new \ForumPay\PaymentGateway\OpenCartExtension\Model\GetCurrencyList($forumPay, $logger),
             'getRate'       => new \ForumPay\PaymentGateway\OpenCartExtension\Model\GetCurrencyRate($forumPay, $logger),
+            'getRates'      => new \ForumPay\PaymentGateway\OpenCartExtension\Model\GetCurrencyRates($forumPay, $logger),
             'startPayment'  => new \ForumPay\PaymentGateway\OpenCartExtension\Model\StartPayment($forumPay, $logger),
             'checkPayment'  => new \ForumPay\PaymentGateway\OpenCartExtension\Model\CheckPayment($forumPay, $logger),
             'cancelPayment' => new \ForumPay\PaymentGateway\OpenCartExtension\Model\CancelPayment($forumPay, $logger),
             'webhook'       => new \ForumPay\PaymentGateway\OpenCartExtension\Model\Webhook($forumPay, $logger),
-            'restoreCart'   => new \ForumPay\PaymentGateway\OpenCartExtension\Model\RestoreCart($forumPay, $logger)
+            'restoreCart'   => new \ForumPay\PaymentGateway\OpenCartExtension\Model\RestoreCart($forumPay, $logger),
+            'getWalletApps' => new \ForumPay\PaymentGateway\OpenCartExtension\Model\GetWalletApps($forumPay, $logger),
+            'ping'          => new \ForumPay\PaymentGateway\OpenCartExtension\Model\Ping($forumPay, $logger),
         ];
     }
 

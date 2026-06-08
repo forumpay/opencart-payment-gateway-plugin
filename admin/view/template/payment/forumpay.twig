@@ -236,6 +236,43 @@
             </div>
           </div>
           <div class="row mb-3">
+            <label for="{{ config.name.network_processing_fee_paid_by }}" class="col-sm-2 col-form-label">Network Processing Fee Paid By</label>
+            <div class="col-sm-10">
+              <select
+                name="{{ config.name.network_processing_fee_paid_by }}"
+                id="{{ config.name.network_processing_fee_paid_by }}"
+                class="form-select"
+              >
+                <option value="payer" {% if config.value.payment_forumpay_network_processing_fee_paid_by != 'merchant' %}selected{% endif %}>Payer</option>
+                <option value="merchant" {% if config.value.payment_forumpay_network_processing_fee_paid_by == 'merchant' %}selected{% endif %}>Merchant</option>
+              </select>
+              <small class="form-text text-muted">{{ text.text_form_network_processing_fee_paid_by }}</small>
+              <p id="network_processing_fee_paid_by_merchant_notice" style="{{ config.value.payment_forumpay_network_processing_fee_paid_by == 'merchant' ? '' : 'display:none;' }}">
+                {{ text.text_form_network_processing_fee_paid_by_merchant_notice|raw }}
+              </p>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="{{ config.name.webhook_url }}" class="col-sm-2 col-form-label">
+              Webhook URL
+            </label>
+            <div class="col-sm-10">
+              <input
+                type="text"
+                name="{{ config.name.webhook_url }}"
+                value="{{ config.value.payment_forumpay_webhook_url }}"
+                id="{{ config.name.webhook_url }}"
+                class="form-control"
+              >
+              <small class="form-text text-muted">{{ text.text_form_webhook_url }}</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-10 offset-sm-2">
+              <button type="button" class="btn btn-primary" id="payment_forumpay_api_test">Test API Credentials</button>
+            </div>
+          </div>
+          <div class="row mb-3">
             <label for="{{ config.name.debug }}" class="col-sm-2 col-form-label">
               Debug
             </label>
@@ -307,4 +344,13 @@
     </div>
   </div>
 </div>
+<script>
+(function() {
+  var select = document.getElementById('{{ config.name.network_processing_fee_paid_by }}');
+  var notice = document.getElementById('network_processing_fee_paid_by_merchant_notice');
+  function toggle() { notice.style.display = select.value === 'merchant' ? '' : 'none'; }
+  select.addEventListener('change', toggle);
+})();
+</script>
+<script type="text/javascript" src="{{ admin_gateway_settings }}"></script>
 {{ page_elements.footer }}

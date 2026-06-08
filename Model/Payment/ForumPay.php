@@ -3,6 +3,7 @@
 namespace ForumPay\PaymentGateway\OpenCartExtension\Model\Payment;
 
 use ForumPay\PaymentGateway\OpenCartExtension\Model\Configuration;
+use ForumPay\PaymentGateway\OpenCartExtension\Model\Data\Payer\Payer;
 use ForumPay\PaymentGateway\PHPClient\Http\Exception\ApiExceptionInterface;
 use ForumPay\PaymentGateway\PHPClient\PaymentGatewayApi;
 use ForumPay\PaymentGateway\PHPClient\PaymentGatewayApiInterface;
@@ -10,6 +11,8 @@ use ForumPay\PaymentGateway\PHPClient\Response\CheckPaymentResponse;
 use ForumPay\PaymentGateway\PHPClient\Response\GetCurrencyListResponse;
 use ForumPay\PaymentGateway\PHPClient\Response\GetRateResponse;
 use ForumPay\PaymentGateway\PHPClient\Response\GetTransactions\TransactionInvoice;
+use ForumPay\PaymentGateway\PHPClient\Response\GetWalletAppsResponse;
+use ForumPay\PaymentGateway\PHPClient\Response\PingResponse;
 use ForumPay\PaymentGateway\PHPClient\Response\RequestKycResponse;
 use ForumPay\PaymentGateway\PHPClient\Response\StartPaymentResponse;
 use Psr\Log\LoggerInterface;
@@ -108,6 +111,28 @@ class ForumPay
     }
 
     /**
+     * Get rates for multiple currencies
+     *
+     * @param string $currencies Comma-separated list of currency codes (e.g., "BTC,ETH")
+     * @return mixed
+     * @throws ApiExceptionInterface
+     */
+    public function getRates(string $currencies)
+    {
+        return $this->apiClient->getRates(
+            $this->configuration->getPosId(),
+            $this->orderManager->getOrderCurrency(),
+            $this->orderManager->getOrderTotal(),
+            $currencies,
+            $this->configuration->isAcceptZeroConfirmations() ? 'true' : 'false',
+            null,
+            null,
+            null,
+            null
+        );
+    }
+
+    /**
      * @return RequestKycResponse
      * @throws ApiExceptionInterface
      */
@@ -122,13 +147,15 @@ class ForumPay
      * @param string $currency
      * @param ?string $kycPin
      * @param string $paymentId
+     * @param Payer|null $payer
      * @return StartPaymentResponse
      * @throws ApiExceptionInterface
      */
     public function startPayment(
         string $currency,
         ?string $kycPin,
-        string $paymentId = ''
+        string $paymentId = '',
+        ?Payer $payer = null
     ): StartPaymentResponse {
         $orderId = $this->orderManager->getOrderId();
 
@@ -142,7 +169,7 @@ class ForumPay
             $this->configuration->isAcceptZeroConfirmations() ? 'true' : 'false',
             $this->orderManager->getOrderCustomerIpAddress(),
             $this->orderManager->getOrderCustomerEmail(),
-            $this->orderManager->getOrderCustomerId(),
+            $this->orderManager->getOrderCustomerId() . '_' . $this->configuration->getPosId(),
             'false',
             '',
             'false',
@@ -151,7 +178,14 @@ class ForumPay
             null,
             null,
             null,
-            $kycPin
+            $kycPin,
+            'false',
+            $this->configuration->getWebhookUrl(),
+            null,
+            null,
+            null,
+            $payer ? $payer->toArray() : null,
+            $this->configuration->getNetworkProcessingFeePaidBy()
         );
 
         $this->orderManager->saveOrderMetaData(
@@ -307,5 +341,63 @@ class ForumPay
         }
 
         return true;
+    }
+
+    /**
+     * Get list of available wallet apps
+     *
+     * @return GetWalletAppsResponse
+     * @throws ApiExceptionInterface
+     */
+    public function getWalletApps(): GetWalletAppsResponse
+    {
+        return $this->apiClient->getWalletApps();
+    }
+
+    /**
+     * Ping api to check configuration
+     *
+     * @param string $apiEnv
+     * @param string $apiKey
+     * @param string $apiSecret
+     * @param string $apiUrlOverride
+     *
+     * @return PingResponse
+     * @throws ApiExceptionInterface
+     */
+    public function ping(string $apiEnv, string $apiKey, string $apiSecret, string $apiUrlOverride): PingResponse
+    {
+        return $this->initApiClient(
+            empty($apiUrlOverride) ? $apiEnv : $apiUrlOverride,
+            $apiKey,
+            $apiSecret
+        )->ping();
+    }
+
+    /**
+     * Initialize Api Client
+     *
+     * @param string $apiUrl
+     * @param string $apiUser
+     * @param string $apiSecret
+     *
+     * @return PaymentGatewayApiInterface
+     */
+    private function initApiClient(string $apiUrl, string $apiUser, string $apiSecret): PaymentGatewayApiInterface
+    {
+        return new PaymentGatewayApi(
+            $apiUrl,
+            $apiUser,
+            $apiSecret,
+            sprintf(
+                'fp-pgw[%s] OC %s on PHP %s',
+                $this->configuration->getPluginVersion(),
+                $this->configuration->getOpenCartVersion(),
+                phpversion()
+            ),
+            $this->configuration->getStoreLocale(),
+            null,
+            $this->psrLogger
+        );
     }
 }

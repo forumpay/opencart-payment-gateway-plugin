@@ -5,7 +5,9 @@ namespace ForumPay\PaymentGateway\OpenCartExtension\Model;
 use ForumPay\PaymentGateway\PHPClient\Http\Exception\ApiExceptionInterface;
 use ForumPay\PaymentGateway\OpenCartExtension\Exception\ApiHttpException;
 use ForumPay\PaymentGateway\OpenCartExtension\Logger\ForumPayLogger;
+use ForumPay\PaymentGateway\OpenCartExtension\Model\Data\Payer\Payer;
 use ForumPay\PaymentGateway\OpenCartExtension\Model\Data\Payment;
+use ForumPay\PaymentGateway\OpenCartExtension\Model\Data\Payment\BeneficiaryVaspDetails;
 use ForumPay\PaymentGateway\OpenCartExtension\Model\Payment\ForumPay;
 
 class StartPayment
@@ -44,9 +46,15 @@ class StartPayment
         try {
             $currency = $request->getRequired('currency');
             $kycPin = $request->get('kycPin');
+            $payerData = $request->get('payer');
             $this->logger->info('StartPayment entrypoint called.', ['currency' => $currency]);
 
-            $response = $this->forumPay->startPayment($currency, $kycPin);
+            $payer = null;
+            if ($payerData !== null && is_array($payerData)) {
+                $payer = Payer::valueOf($payerData);
+            }
+
+            $response = $this->forumPay->startPayment($currency, $kycPin, '', $payer);
 
             $notices = [];
             foreach ($response->getNotices() as $notice) {
@@ -64,7 +72,12 @@ class StartPayment
                 $response->getQrAlt(),
                 $response->getQrImg(),
                 $response->getQrAltImg(),
-                $notices
+                $notices,
+                $response->getItemName(),
+                $response->getInvoiceSurchargeAmount(),
+                $response->getInvoiceAmountWithSurcharge(),
+                $response->getInvoiceSurchargePercent(),
+                BeneficiaryVaspDetails::fromArray($response->getBeneficiaryVaspDetails())
             );
 
             $this->logger->info('StartPayment entrypoint finished.');
@@ -91,6 +104,8 @@ class StartPayment
                     throw new \Exception($e->getMessage(), 3050, $e);
                 }
                 throw new ApiHttpException($e, 3051);
+            } elseif ($errorCode === 'missingPayerData' || $errorCode === 'incompletePayerData') {
+                throw new ApiHttpException($e, 3056);
             } elseif (substr($errorCode, 0, 5) === 'payer') {
                 throw new ApiHttpException($e, 3052);
             } else {

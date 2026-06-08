@@ -12,6 +12,7 @@ class ConfigurationData
     public const FORUMPAY_API_KEY = 'payment_forumpay_api_key';
     public const FORUMPAY_POS_ID = 'payment_forumpay_pos_id';
     public const FORUMPAY_API_URL_OVERRIDE = 'payment_forumpay_api_url_override';
+    public const FORUMPAY_WEBHOOK_URL = 'payment_forumpay_webhook_url';
     public const FORUMPAY_INITIAL_ORDER_STATUS = 'payment_forumpay_initial_order_status';
     public const FORUMPAY_CANCELLED_ORDER_STATUS = 'payment_forumpay_cancelled_order_status';
     public const FORUMPAY_SUCCESS_ORDER_STATUS = 'payment_forumpay_success_order_status';
@@ -19,6 +20,7 @@ class ConfigurationData
     public const FORUMPAY_PAYMENT_SORT_ORDER = 'payment_forumpay_sort_order';
     public const FORUMPAY_PAYMENT_DEBUG = 'payment_forumpay_debug';
     public const FORUMPAY_ENABLED = 'payment_forumpay_status';
+    public const FORUMPAY_NETWORK_PROCESSING_FEE_PAID_BY = 'payment_forumpay_network_processing_fee_paid_by';
 
     /**
      * Returns the config keys.
@@ -35,13 +37,15 @@ class ConfigurationData
             'api_key' => self::FORUMPAY_API_KEY,
             'pos_id' => self::FORUMPAY_POS_ID,
             'api_url_override' => self::FORUMPAY_API_URL_OVERRIDE,
+            'webhook_url' => self::FORUMPAY_WEBHOOK_URL,
             'initial_order_status' => self::FORUMPAY_INITIAL_ORDER_STATUS,
             'cancelled_order_status' => self::FORUMPAY_CANCELLED_ORDER_STATUS,
             'success_order_status' => self::FORUMPAY_SUCCESS_ORDER_STATUS,
             'accept_zero_confirmations' => self::FORUMPAY_ACCEPT_ZERO_CONFIRMATIONS,
             'sort_order' => self::FORUMPAY_PAYMENT_SORT_ORDER,
             'debug' => self::FORUMPAY_PAYMENT_DEBUG,
-            'enabled' => self::FORUMPAY_ENABLED
+            'enabled' => self::FORUMPAY_ENABLED,
+            'network_processing_fee_paid_by' => self::FORUMPAY_NETWORK_PROCESSING_FEE_PAID_BY
         ];
     }
 

@@ -2,6 +2,7 @@
 
 namespace ForumPay\PaymentGateway\OpenCartExtension\Model\Data;
 
+use ForumPay\PaymentGateway\OpenCartExtension\Model\Data\Payment\BeneficiaryVaspDetails;
 use ForumPay\PaymentGateway\OpenCartExtension\Model\Data\Payment\Notice;
 
 /**
@@ -87,6 +88,41 @@ class Payment
     private array $notices;
 
     /**
+     * Item name being purchased
+     *
+     * @var string|null
+     */
+    private ?string $itemName;
+
+    /**
+     * Processing fee/surcharge amount
+     *
+     * @var string|null
+     */
+    private ?string $invoiceSurchargeAmount;
+
+    /**
+     * Total invoice amount including surcharge
+     *
+     * @var string|null
+     */
+    private ?string $invoiceAmountWithSurcharge;
+
+    /**
+     * Surcharge percentage
+     *
+     * @var string|null
+     */
+    private ?string $invoiceSurchargePercent;
+
+    /**
+     * Beneficiary VASP details for compliance
+     *
+     * @var BeneficiaryVaspDetails|null
+     */
+    private ?BeneficiaryVaspDetails $beneficiaryVaspDetails;
+
+    /**
      * Payment DTO constructor
      *
      * @param string $paymentId
@@ -100,6 +136,11 @@ class Payment
      * @param string $qrImg
      * @param string $qrAltImg
      * @param array $notices
+     * @param string|null $itemName
+     * @param string|null $invoiceSurchargeAmount
+     * @param string|null $invoiceAmountWithSurcharge
+     * @param string|null $invoiceSurchargePercent
+     * @param BeneficiaryVaspDetails|null $beneficiaryVaspDetails
      */
     public function __construct(
         string $paymentId,
@@ -112,7 +153,12 @@ class Payment
         string $qrAlt,
         string $qrImg,
         string $qrAltImg,
-        array $notices = []
+        array $notices = [],
+        ?string $itemName = null,
+        ?string $invoiceSurchargeAmount = null,
+        ?string $invoiceAmountWithSurcharge = null,
+        ?string $invoiceSurchargePercent = null,
+        ?BeneficiaryVaspDetails $beneficiaryVaspDetails = null
     ) {
         $this->paymentId = $paymentId;
         $this->address = $address;
@@ -125,6 +171,11 @@ class Payment
         $this->qrImg = $qrImg;
         $this->qrAltImg = $qrAltImg;
         $this->notices = $notices;
+        $this->itemName = $itemName;
+        $this->invoiceSurchargeAmount = $invoiceSurchargeAmount;
+        $this->invoiceAmountWithSurcharge = $invoiceAmountWithSurcharge;
+        $this->invoiceSurchargePercent = $invoiceSurchargePercent;
+        $this->beneficiaryVaspDetails = $beneficiaryVaspDetails;
     }
 
     /**
@@ -216,6 +267,46 @@ class Payment
     }
 
     /**
+     * @return string|null
+     */
+    public function getItemName(): ?string
+    {
+        return $this->itemName;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getInvoiceSurchargeAmount(): ?string
+    {
+        return $this->invoiceSurchargeAmount;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getInvoiceAmountWithSurcharge(): ?string
+    {
+        return $this->invoiceAmountWithSurcharge;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getInvoiceSurchargePercent(): ?string
+    {
+        return $this->invoiceSurchargePercent;
+    }
+
+    /**
+     * @return BeneficiaryVaspDetails|null
+     */
+    public function getBeneficiaryVaspDetails(): ?BeneficiaryVaspDetails
+    {
+        return $this->beneficiaryVaspDetails;
+    }
+
+    /**
      * Return associative array of all the properties
      *
      * @return array
@@ -237,6 +328,11 @@ class Payment
                 $this->notices
             ),
             'payment_id' => $this->paymentId,
+            'item_name' => $this->itemName,
+            'invoice_surcharge_amount' => $this->invoiceSurchargeAmount,
+            'invoice_amount_with_surcharge' => $this->invoiceAmountWithSurcharge,
+            'invoice_surcharge_percent' => $this->invoiceSurchargePercent,
+            'beneficiary_vasp_details' => $this->beneficiaryVaspDetails?->toArray(),
         ];
     }
 }

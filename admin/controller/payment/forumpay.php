@@ -68,6 +68,7 @@ class ForumPay extends \Opencart\System\Engine\Controller
                 'name' => ConfigurationData::getData(),
                 'value' => $this->model_setting_setting->getSetting('payment_forumpay')
             ],
+            'admin_gateway_settings' => HTTP_CATALOG . 'extension/forumpay/admin/view/js/admin_gateway_settings.js',
             'errors' => $this->session->data['errors'] ?? null,
             'order_statuses' => $this->model_localisation_order_status->getOrderStatuses(),
             'success' => $this->session->data['success'] ?? null,
@@ -81,6 +82,7 @@ class ForumPay extends \Opencart\System\Engine\Controller
                 'text_form_api_key' => $this->language->get('text_form_api_key'),
                 'text_form_pos_id' => $this->language->get('text_form_pos_id'),
                 'text_form_api_url_override' => $this->language->get('text_form_api_url_override'),
+                'text_form_webhook_url' => $this->language->get('text_form_webhook_url'),
                 'text_form_initial_order_status' => $this->language->get('text_form_initial_order_status'),
                 'text_form_cancelled_order_status' => $this->language->get('text_form_cancelled_order_status'),
                 'text_form_success_order_status' => $this->language->get('text_form_success_order_status'),
@@ -88,6 +90,8 @@ class ForumPay extends \Opencart\System\Engine\Controller
                 'text_form_accept_zero_confirmations' => $this->language->get('text_form_accept_zero_confirmations'),
                 'text_form_debug' => $this->language->get('text_form_debug'),
                 'text_form_enable' => $this->language->get('text_form_enable'),
+                'text_form_network_processing_fee_paid_by' => $this->language->get('text_form_network_processing_fee_paid_by'),
+                'text_form_network_processing_fee_paid_by_merchant_notice' => $this->language->get('text_form_network_processing_fee_paid_by_merchant_notice'),
                 'edit_text' => $this->language->get('edit_text')
             ]
         ];
@@ -148,7 +152,8 @@ class ForumPay extends \Opencart\System\Engine\Controller
                 ConfigurationData::FORUMPAY_INITIAL_ORDER_STATUS => '2',
                 ConfigurationData::FORUMPAY_CANCELLED_ORDER_STATUS => '7',
                 ConfigurationData::FORUMPAY_SUCCESS_ORDER_STATUS => '5',
-                ConfigurationData::FORUMPAY_PAYMENT_DEBUG => '0'
+                ConfigurationData::FORUMPAY_PAYMENT_DEBUG => '0',
+                ConfigurationData::FORUMPAY_NETWORK_PROCESSING_FEE_PAID_BY => 'payer'
             ]);
 
             $this->model_extension_forumpay_payment_forumpay->install();

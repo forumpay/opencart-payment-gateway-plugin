@@ -140,6 +140,18 @@ class Configuration
     }
 
     /**
+     * Returns url to Webhook api depending.
+     *
+     * @return string|null
+     */
+    public function getWebhookUrl(): ?string
+    {
+        $webhookUrl = $this->configuration->get('payment_forumpay_webhook_url');
+
+        return empty($webhookUrl) ? null : $webhookUrl;
+    }
+
+    /**
      * Return weather or not zero confirmation is checked in settings
      *
      * @return bool
@@ -167,6 +179,11 @@ class Configuration
     public function getCancelledOrderStatus(): string
     {
         return $this->configuration->get(ConfigurationData::FORUMPAY_CANCELLED_ORDER_STATUS);
+    }
+
+    public function getNetworkProcessingFeePaidBy(): string
+    {
+        return $this->configuration->get('payment_forumpay_network_processing_fee_paid_by') ?: 'payer';
     }
 
     public function getConfigCustomerPrice()
