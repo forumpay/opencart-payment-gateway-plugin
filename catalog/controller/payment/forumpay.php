@@ -19,6 +19,23 @@ use ForumPay\PaymentGateway\OpenCartExtension\Model\Response;
 
 class ForumPay extends \Opencart\System\Engine\Controller
 {
+    private const API_ROUTES = [
+        'currencies',
+        'getRate',
+        'getRates',
+        'startPayment',
+        'checkPayment',
+        'cancelPayment',
+        'webhook',
+        'restoreCart',
+        'getWalletApps',
+    ];
+
+    private const PUBLIC_API_ROUTES = [
+        'webhook',
+        'restoreCart',
+    ];
+
     /**
      * @var array
      */
@@ -41,6 +58,13 @@ class ForumPay extends \Opencart\System\Engine\Controller
 
         if (!isset($this->session->data['order_id'])) {
             $this->response->redirect($this->url->link('checkout/checkout'));
+        }
+
+        $orderId = (string) $this->session->data['order_id'];
+        $orderManager = $this->createOrderManager();
+        $staleForumPayOrderId = $this->session->data['forumpay_order_id'] ?? null;
+        if ($staleForumPayOrderId !== null && (string) $staleForumPayOrderId !== $orderId) {
+            $orderManager->clearForumPayOrderId();
         }
 
         $this->document->setTitle($this->config->get('forumpay_title'));
@@ -80,6 +104,7 @@ class ForumPay extends \Opencart\System\Engine\Controller
             'payerEmail' => $orderInfo['email'] ?? '',
             'payerCompany' => $orderInfo['payment_company'] ?? '',
             'payerCountry' => $orderInfo['payment_iso_code_2'] ?: ($orderInfo['payment_country'] ?? ''),
+            'orderId' => $orderId,
         ]));
     }
 
@@ -87,26 +112,39 @@ class ForumPay extends \Opencart\System\Engine\Controller
     {
         $this->isPluginEnabled(true);
 
+        $request = new Request();
+
         try {
-            $route = (new Request())->getRequired('act');
+            $route = $request->getRequired('act');
         } catch (\InvalidArgumentException $e) {
             $this->serializeError($e);
             return;
         }
 
-        $this->initRoutes();
-
-        if (!array_key_exists($route, $this->routes)) {
+        if (!in_array($route, self::API_ROUTES, true)) {
+            $this->serializeError(
+                new ForumPayHttpException('Route not found.', 404, ForumPayHttpException::HTTP_NOT_FOUND),
+                ForumPayHttpException::HTTP_NOT_FOUND
+            );
             return;
         }
 
+        $logger = $this->createLogger();
+        $orderManager = $this->createOrderManager();
+
         try {
-            $service = $this->routes[$route];
-            $response = $service->execute(new Request());
+            $this->assertRouteAccess($route, $request, $orderManager);
+
+            $forumPay = $this->createForumPayPayment($logger, $orderManager);
+            $this->initRoutes($forumPay, $logger);
+
+            $response = $this->routes[$route]->execute($request);
             if ($response !== null) {
                 $this->serializeResponse($response->toArray());
             }
         } catch (ApiHttpException $e) {
+            $this->serializeError($e, $e->getHttpCode());
+        } catch (ForumPayHttpException $e) {
             $this->serializeError($e, $e->getHttpCode());
         } catch (ForumPayException $e) {
             $this->serializeError(
@@ -124,6 +162,32 @@ class ForumPay extends \Opencart\System\Engine\Controller
                     ForumPayHttpException::HTTP_INTERNAL_ERROR,
                 ), ForumPayHttpException::HTTP_INTERNAL_ERROR
             );
+        }
+    }
+
+    /**
+     * @param string $route
+     * @param Request $request
+     * @param OrderManager $orderManager
+     * @return void
+     * @throws ForumPayHttpException
+     */
+    private function assertRouteAccess(string $route, Request $request, OrderManager $orderManager): void
+    {
+        if (in_array($route, self::PUBLIC_API_ROUTES, true)) {
+            return;
+        }
+
+        $orderManager->requireCheckoutSession();
+
+        $orderId = $orderManager->resolveOrderId($request);
+        $orderManager->validateOrderAccess($orderId);
+
+        if (in_array($route, ['checkPayment', 'cancelPayment'], true)) {
+            $paymentId = $request->get('payment_id');
+            if ($paymentId !== null && $paymentId !== '') {
+                $orderManager->validatePaymentBelongsToOrder($orderId, (string) $paymentId);
+            }
         }
     }
 
@@ -154,32 +218,8 @@ class ForumPay extends \Opencart\System\Engine\Controller
         ]));
     }
 
-    private function initRoutes(): void
+    private function initRoutes(ForumPayPayment $forumPay, ForumPayLogger $logger): void
     {
-        $logger = (new ForumPayLogger($this->log))
-            ->setDebug((bool) $this->config->get(ConfigurationData::FORUMPAY_PAYMENT_DEBUG))
-            ->addParser(new PrivateTokenMasker());
-        $configuration = new Configuration(
-            $this->config,
-            $this->language,
-            VERSION ?? null,
-            DIR_APPLICATION ?? null
-        );
-        $forumPay = new ForumPayPayment(
-            $configuration,
-            new OrderManager(
-                $this->session,
-                $this->loadCheckoutOrder(),
-                new CheckoutTransactions($this->loadDatabase()),
-                $this->request,
-                $configuration,
-                $this->loadLanguage(),
-                $this->loadCheckoutCart(),
-                $this->cart,
-                $this->customer,
-            ),
-            $logger,
-        );
         $this->routes = [
             'currencies'    => new \ForumPay\PaymentGateway\OpenCartExtension\Model\GetCurrencyList($forumPay, $logger),
             'getRate'       => new \ForumPay\PaymentGateway\OpenCartExtension\Model\GetCurrencyRate($forumPay, $logger),
@@ -190,8 +230,48 @@ class ForumPay extends \Opencart\System\Engine\Controller
             'webhook'       => new \ForumPay\PaymentGateway\OpenCartExtension\Model\Webhook($forumPay, $logger),
             'restoreCart'   => new \ForumPay\PaymentGateway\OpenCartExtension\Model\RestoreCart($forumPay, $logger),
             'getWalletApps' => new \ForumPay\PaymentGateway\OpenCartExtension\Model\GetWalletApps($forumPay, $logger),
-            'ping'          => new \ForumPay\PaymentGateway\OpenCartExtension\Model\Ping($forumPay, $logger),
         ];
+    }
+
+    private function createLogger(): ForumPayLogger
+    {
+        return (new ForumPayLogger($this->log))
+            ->setDebug((bool) $this->config->get(ConfigurationData::FORUMPAY_PAYMENT_DEBUG))
+            ->addParser(new PrivateTokenMasker());
+    }
+
+    private function createOrderManager(): OrderManager
+    {
+        $configuration = new Configuration(
+            $this->config,
+            $this->language,
+            VERSION ?? null,
+            DIR_APPLICATION ?? null
+        );
+
+        return new OrderManager(
+            $this->session,
+            $this->loadCheckoutOrder(),
+            new CheckoutTransactions($this->loadDatabase()),
+            $this->request,
+            $configuration,
+            $this->loadLanguage(),
+            $this->loadCheckoutCart(),
+            $this->cart,
+            $this->customer,
+        );
+    }
+
+    private function createForumPayPayment(ForumPayLogger $logger, OrderManager $orderManager): ForumPayPayment
+    {
+        $configuration = new Configuration(
+            $this->config,
+            $this->language,
+            VERSION ?? null,
+            DIR_APPLICATION ?? null
+        );
+
+        return new ForumPayPayment($configuration, $orderManager, $logger);
     }
 
     /**

@@ -42,9 +42,10 @@ class GetCurrencyList
     public function execute(Request $request): ?CurrencyList
     {
         try {
-            $this->logger->info('GetCurrencyList entrypoint called.');
+            $orderId = $request->getRequired('orderId');
+            $this->logger->info('GetCurrencyList entrypoint called.', ['orderId' => $orderId]);
 
-            $response = $this->forumPay->getCryptoCurrencyList();
+            $response = $this->forumPay->getCryptoCurrencyList($orderId);
 
             /** @var Data\CurrencyList\Currency[] $currencyDtos */
             $currencyDtos = [];

@@ -2,6 +2,8 @@
 
 namespace ForumPay\PaymentGateway\OpenCartExtension\Form;
 
+use ForumPay\PaymentGateway\OpenCartExtension\Model\Configuration;
+
 class ConfigurationData
 {
     public const FORUMPAY_TABLE_NAME = 'payment_forumpay';
@@ -53,22 +55,36 @@ class ConfigurationData
      * Validates configuration data. Returns array of all error messages or empty array if validation passes
      *
      * @param array $config
+     * @param array $currentSettings
      * @return array
      */
-    public static function validate(array $config): array
+    public static function validate(array $config, array $currentSettings = []): array
     {
         $errors = [];
         if (!isset(
             $config[self::FORUMPAY_TITLE],
             $config[self::FORUMPAY_DESCRIPTION],
             $config[self::FORUMPAY_API_URL],
-            $config[self::FORUMPAY_API_USER],
-            $config[self::FORUMPAY_API_KEY],
             $config[self::FORUMPAY_POS_ID],
             $config[self::FORUMPAY_PAYMENT_SORT_ORDER],
         )) {
             $errors[] = 'Missing required fields.';
             return $errors;
+        }
+
+        if (!Configuration::isAllowedApiEnv((string) $config[self::FORUMPAY_API_URL])) {
+            $errors[] = 'Invalid API environment URL.';
+        }
+
+        $apiUser = trim((string) ($config[self::FORUMPAY_API_USER] ?? ''));
+        $apiSecret = trim((string) ($config[self::FORUMPAY_API_KEY] ?? ''));
+
+        if ($apiUser === '') {
+            $errors[] = 'API User is required.';
+        }
+
+        if ($apiSecret === '') {
+            $errors[] = 'API Secret is required.';
         }
 
         if (1 !== preg_match('/^[A-Za-z0-9._-]+$/', $config[self::FORUMPAY_POS_ID])) {

@@ -11,6 +11,7 @@ $_['text_form_description'] = 'This controls the description which the user sees
 $_['text_form_environment'] = 'ForumPay environment.';
 $_['text_form_api_user'] = 'You can generate API key in your ForumPay account.';
 $_['text_form_api_key'] = 'You can generate API secret in your ForumPay account.';
+$_['text_form_api_url_change_notice'] = 'Enter your API Secret to change the API environment.';
 $_['text_form_pos_id'] = 'Enter your webshop identifier (POS ID). Special characters not allowed. Allowed pos IDs are: [A-Za-z0-9._-] Eg opencart-1, opencart-2';
 $_['text_form_api_url_override'] = 'Optional: URL to the API server. This value will override the default setting. Only used for debugging.';
 $_['text_form_webhook_url'] = 'Optional: This URL should point to the endpoint that will handle the webhook events.<br> Typically, it should be: <b><i>YOUR_WEBSHOP/index.php?route=extension/forumpay/payment/forumpay.api&act=webhook</i></b><br> This URL will override the default setting for your API keys on your ForumPay account.<br> Ensure that the URL is publicly accessible and can handle the incoming webhook events securely.';

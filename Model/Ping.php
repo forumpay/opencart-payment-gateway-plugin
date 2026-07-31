@@ -42,14 +42,15 @@ class Ping
             $this->logger->info('Ping entrypoint called.');
 
             try {
-                $apiEnv = $request->getRequired('apiEnv', true);
-                $apiKey = $request->getRequired('apiKey', true);
-                $apiSecret = $request->getRequired('apiSecret', true);
-                $apiUrlOverride = $request->getRequired('apiUrlOverride', true);
+                $apiEnv = $request->getRequired('apiEnv');
+                $apiUrlOverride = $request->getRequired('apiUrlOverride');
             } catch (\InvalidArgumentException $e) {
                 $this->logger->error($e->getMessage(), $e->getTrace());
-                throw new ForumPayException('There has been an error, check WooCommerce logs for more.');
+                throw new ForumPayException('There has been an error, check OpenCart logs for more.');
             }
+
+            $apiKey = (string) $request->get('apiKey', '');
+            $apiSecret = (string) $request->get('apiSecret', '');
 
             $response = $this->forumPay->ping($apiEnv, $apiKey, $apiSecret, $apiUrlOverride);
 
@@ -58,6 +59,9 @@ class Ping
 
             return new \ForumPay\PaymentGateway\OpenCartExtension\Model\Data\Ping('OK');
 
+        } catch (ForumPayException $e) {
+            $this->logger->error($e->getMessage(), $e->getTrace());
+            throw $e;
         } catch (InvalidApiResponseException $e) {
             $this->logger->logApiException($e);
             throw new ForumPayHttpException($e->getMessage(), intval(0));

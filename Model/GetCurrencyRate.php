@@ -41,10 +41,11 @@ class GetCurrencyRate
     public function execute(Request $request): Rate
     {
         try {
+            $orderId = $request->getRequired('orderId');
             $currency = $request->getRequired('currency');
-            $this->logger->info('GetCurrencyRate entrypoint called.', ['currency' => $currency]);
+            $this->logger->info('GetCurrencyRate entrypoint called.', ['orderId' => $orderId, 'currency' => $currency]);
 
-            $response = $this->forumPay->getRate($currency);
+            $response = $this->forumPay->getRate($orderId, $currency);
 
             $rate = new Rate(
                 $response->getInvoiceCurrency(),

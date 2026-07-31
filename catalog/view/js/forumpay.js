@@ -3,43 +3,54 @@ const forumPayData = function (field) {
 }
 
 const initPlugin = function () {
+  const orderId = forumPayData('forumpay-orderid');
+  const orderParams = {
+    orderId: orderId,
+  };
+
   const config = {
     baseUrl: forumPayData('forumpay-apibase'),
 
     restGetCryptoCurrenciesUri: {
       'path': '',
       'params': {
-        'act': 'currencies'
+        'act': 'currencies',
+        ...orderParams,
       },
     },
     restGetRateUri: {
       'path': '',
       'params': {
-        'act': 'getRate'
+        'act': 'getRate',
+        ...orderParams,
       },
     },
     restGetRatesUri: {
       'path': '',
       'params': {
-        'act': 'getRates'
+        'act': 'getRates',
+        ...orderParams,
       },
     },
     restStartPaymentUri: {
       'path': '',
       'params': {
-        'act': 'startPayment'
+        'act': 'startPayment',
+        ...orderParams,
       },
     },
     restCheckPaymentUri: {
       'path': '',
       'params': {
-        'act': 'checkPayment'
+        'act': 'checkPayment',
+        ...orderParams,
       },
     },
     restCancelPaymentUri: {
       'path': '',
       'params': {
-        'act': 'cancelPayment'
+        'act': 'cancelPayment',
+        ...orderParams,
       },
     },
     restRestoreCart: {
@@ -51,7 +62,8 @@ const initPlugin = function () {
     restGetWalletAppsUri: {
       'path': '',
       'params': {
-        'act': 'getWalletApps'
+        'act': 'getWalletApps',
+        ...orderParams,
       }
     },
     successResultUrl: forumPayData('forumpay-returnurl'),

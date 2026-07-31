@@ -2,6 +2,7 @@
 
 namespace ForumPay\PaymentGateway\OpenCartExtension\Model\Payment;
 
+use ForumPay\PaymentGateway\OpenCartExtension\Exception\ForumPayException;
 use ForumPay\PaymentGateway\OpenCartExtension\Model\Configuration;
 use ForumPay\PaymentGateway\OpenCartExtension\Model\Data\Payer\Payer;
 use ForumPay\PaymentGateway\PHPClient\Http\Exception\ApiExceptionInterface;
@@ -77,12 +78,13 @@ class ForumPay
     /**
      * Return the list of all available currencies as defined on merchant account
      *
+     * @param string $orderId
      * @throws ApiExceptionInterface
      * @throws \Exception
      */
-    public function getCryptoCurrencyList(): GetCurrencyListResponse
+    public function getCryptoCurrencyList(string $orderId): GetCurrencyListResponse
     {
-        $currency = $this->orderManager->getOrderCurrency();
+        $currency = $this->orderManager->getOrderCurrency($orderId);
 
         if ($currency === null) {
             throw new \Exception('Store currency could not be determined');
@@ -94,14 +96,15 @@ class ForumPay
     /**
      * Get rate for a requested currency
      *
+     * @param string $orderId
      * @throws ApiExceptionInterface
      */
-    public function getRate(string $currency): GetRateResponse
+    public function getRate(string $orderId, string $currency): GetRateResponse
     {
         return $this->apiClient->getRate(
             $this->configuration->getPosId(),
-            $this->orderManager->getOrderCurrency(),
-            $this->orderManager->getOrderTotal(),
+            $this->orderManager->getOrderCurrency($orderId),
+            $this->orderManager->getOrderTotal($orderId),
             $currency,
             $this->configuration->isAcceptZeroConfirmations() ? 'true' : 'false',
             null,
@@ -113,16 +116,17 @@ class ForumPay
     /**
      * Get rates for multiple currencies
      *
+     * @param string $orderId
      * @param string $currencies Comma-separated list of currency codes (e.g., "BTC,ETH")
      * @return mixed
      * @throws ApiExceptionInterface
      */
-    public function getRates(string $currencies)
+    public function getRates(string $orderId, string $currencies)
     {
         return $this->apiClient->getRates(
             $this->configuration->getPosId(),
-            $this->orderManager->getOrderCurrency(),
-            $this->orderManager->getOrderTotal(),
+            $this->orderManager->getOrderCurrency($orderId),
+            $this->orderManager->getOrderTotal($orderId),
             $currencies,
             $this->configuration->isAcceptZeroConfirmations() ? 'true' : 'false',
             null,
@@ -161,9 +165,9 @@ class ForumPay
 
         $response = $this->apiClient->startPayment(
             $this->configuration->getPosId(),
-            $this->orderManager->getOrderCurrency(),
+            $this->orderManager->getOrderCurrency($orderId),
             $paymentId,
-            $this->orderManager->getOrderTotal(),
+            $this->orderManager->getOrderTotal($orderId),
             $currency,
             $orderId,
             $this->configuration->isAcceptZeroConfirmations() ? 'true' : 'false',
@@ -195,6 +199,7 @@ class ForumPay
         );
 
         $this->cancelAllPayments($orderId, $response->getPaymentId());
+        $this->orderManager->setForumPayOrderId($orderId);
         $this->orderManager->unsetOrderId();
         return $response;
     }
@@ -300,21 +305,29 @@ class ForumPay
     {
         $existingPayments = $this->apiClient->getTransactions(null, null, $orderId);
 
+        $posId = $this->configuration->getPosId();
+
         /** @var TransactionInvoice $existingPayment */
         foreach ($existingPayments->getInvoices() as $existingPayment) {
             if (
                 $existingPayment->getPaymentId() === $existingPaymentId
+                || $existingPayment->getPosId() !== $posId
                 || strtolower($existingPayment->getStatus()) !== 'waiting'
             ) {
-                // newly created
                 continue;
             }
 
-            $this->cancelPayment(
-                $existingPayment->getPaymentId(),
-                $existingPayment->getCurrency(),
-                $existingPayment->getAddress()
-            );
+            try {
+                $this->cancelPayment(
+                    $existingPayment->getPaymentId(),
+                    $existingPayment->getCurrency(),
+                    $existingPayment->getAddress()
+                );
+            } catch (ApiExceptionInterface $e) {
+                if (stripos($e->getMessage(), 'Payment not found') === false) {
+                    throw $e;
+                }
+            }
         }
     }
 
@@ -367,10 +380,17 @@ class ForumPay
      */
     public function ping(string $apiEnv, string $apiKey, string $apiSecret, string $apiUrlOverride): PingResponse
     {
+        $apiUrl = trim($apiUrlOverride !== '' ? $apiUrlOverride : $apiEnv);
+        if ($apiUrl === '' || filter_var($apiUrl, FILTER_VALIDATE_URL) === false) {
+            throw new ForumPayException('Invalid API environment URL.');
+        }
+
+        $credentials = $this->configuration->resolveCredentials($apiEnv, $apiUrlOverride, $apiKey, $apiSecret);
+
         return $this->initApiClient(
-            empty($apiUrlOverride) ? $apiEnv : $apiUrlOverride,
-            $apiKey,
-            $apiSecret
+            $apiUrl,
+            $credentials['apiUser'],
+            $credentials['apiSecret']
         )->ping();
     }
 

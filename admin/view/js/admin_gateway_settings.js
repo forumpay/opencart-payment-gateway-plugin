@@ -1,13 +1,70 @@
 jQuery(document).ready(function($) {
-  let baseUrl = '';
-  if (!baseUrl) {
-    const protocol = window.location.protocol;
-    const host = window.location.host;
-    baseUrl = protocol + "//" + host + "/index.php?route=extension/forumpay/payment/forumpay.api&act=ping";
+  const SECRET_MASK = '******';
+  const pingUrl = $('#payment_forumpay_api_test').data('ping-url');
+  const $apiEnvField = $('#payment_forumpay_api_url');
+  const $apiUrlOverrideField = $('#payment_forumpay_api_url_override');
+  const $apiUserField = $('#payment_forumpay_api_user');
+  const $apiSecretField = $('#payment_forumpay_api_key');
+  const $credentialNotice = $('#forumpay-api-url-change-notice');
+  const $apiTestButton = $('#payment_forumpay_api_test');
+
+  function normalizeUrl(url) {
+    url = (url || '').trim();
+    if (!url) {
+      return '';
+    }
+
+    return url.replace(/\/+$/, '').toLowerCase();
   }
 
-  $('#payment_forumpay_api_test').on('click', function(e) {
+  const savedBaseline = {
+    apiEnv: normalizeUrl($apiEnvField.val()),
+    override: normalizeUrl($apiUrlOverrideField.val()),
+  };
+
+  function apiEnvChanged(env) {
+    return normalizeUrl(env) !== savedBaseline.apiEnv;
+  }
+
+  function overrideChanged(override) {
+    return normalizeUrl(override) !== savedBaseline.override;
+  }
+
+  function envOrOverrideChanged() {
+    return apiEnvChanged($apiEnvField.val()) || overrideChanged($apiUrlOverrideField.val());
+  }
+
+  function secretMissingForEnvChange() {
+    const value = ($apiSecretField.val() || '').trim();
+    return value === '' || value === SECRET_MASK;
+  }
+
+  function needsRealSecretForEnvChange() {
+    return envOrOverrideChanged() && secretMissingForEnvChange();
+  }
+
+  function updateCredentialNotice() {
+    $credentialNotice.toggle(needsRealSecretForEnvChange());
+  }
+
+  function updateTestButtonState() {
+    $apiTestButton.prop('disabled', needsRealSecretForEnvChange());
+    updateCredentialNotice();
+  }
+
+  $apiEnvField.on('change', updateTestButtonState);
+  $apiUrlOverrideField.on('change input', updateTestButtonState);
+  $apiSecretField.on('input change', updateTestButtonState);
+  updateTestButtonState();
+
+  $apiTestButton.on('click', function(e) {
     e.preventDefault();
+
+    if (needsRealSecretForEnvChange()) {
+      updateCredentialNotice();
+      $apiSecretField.focus();
+      return;
+    }
 
     var $button = $(this);
     var originalText = $button.text();
@@ -15,24 +72,24 @@ jQuery(document).ready(function($) {
     $button.text('Testing ...');
 
     $.ajax({
-      url: baseUrl,
+      url: pingUrl,
       type: 'POST',
       contentType: 'application/json',
       dataType: 'json',
       data: JSON.stringify({
-        apiEnv: $('#payment_forumpay_api_url').val(),
-        apiKey: $('#payment_forumpay_api_user').val(),
-        apiSecret: $('#payment_forumpay_api_key').val(),
-        apiUrlOverride: $('#payment_forumpay_api_url_override').val(),
+        apiEnv: $apiEnvField.val(),
+        apiKey: $apiUserField.val(),
+        apiSecret: ($apiSecretField.val() || '').trim(),
+        apiUrlOverride: $apiUrlOverrideField.val(),
       }),
       showLoader: true,
       success: function(response) {
-        $button.prop('disabled', false);
+        updateTestButtonState();
         $button.text(originalText);
         alert('Server responded: ' + response?.message);
       },
       error: function(error) {
-        $button.prop('disabled', false);
+        updateTestButtonState();
         $button.text(originalText);
 
         var message = '';

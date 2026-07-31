@@ -129,12 +129,16 @@
               <input
                 type="password"
                 name="{{ config.name.api_key }}"
-                value="{{ config.value.payment_forumpay_api_key }}"
+                value="{% if config.value.payment_forumpay_api_key %}******{% endif %}"
                 id="{{ config.name.api_key }}"
                 class="form-control"
                 required
+                autocomplete="new-password"
               >
               <small class="form-text text-muted">{{ text.text_form_api_key }}</small>
+              <p id="forumpay-api-url-change-notice" class="form-text text-danger" style="display:none;">
+                {{ text.text_form_api_url_change_notice }}
+              </p>
             </div>
           </div>
           <div class="row mb-3">
@@ -269,7 +273,7 @@
           </div>
           <div class="row mb-3">
             <div class="col-sm-10 offset-sm-2">
-              <button type="button" class="btn btn-primary" id="payment_forumpay_api_test">Test API Credentials</button>
+              <button type="button" class="btn btn-primary" id="payment_forumpay_api_test" data-ping-url="{{ ping_url }}">Test API Credentials</button>
             </div>
           </div>
           <div class="row mb-3">
