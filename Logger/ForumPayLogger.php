@@ -155,7 +155,7 @@ class ForumPayLogger implements LoggerInterface
 
         if (count($this->parsers) > 0) {
             foreach ($this->parsers as $parser) {
-                $context = $parser->parse(['access_token', 'stats_token'], $context);
+                $context = $parser->parse(['access_token', 'stats_token', 'wc_token'], $context);
             }
         }
 

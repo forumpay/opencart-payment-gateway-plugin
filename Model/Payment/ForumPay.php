@@ -313,6 +313,7 @@ class ForumPay
                 $existingPayment->getPaymentId() === $existingPaymentId
                 || $existingPayment->getPosId() !== $posId
                 || strtolower($existingPayment->getStatus()) !== 'waiting'
+                || $existingPayment->getPosId() !== $this->configuration->getPosId()
             ) {
                 continue;
             }

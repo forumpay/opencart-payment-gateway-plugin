@@ -73,11 +73,13 @@ class StartPayment
                 $response->getQrImg(),
                 $response->getQrAltImg(),
                 $notices,
+                $response->getStatsToken(),
+                $response->getWcToken(),
+                BeneficiaryVaspDetails::fromArray($response->getBeneficiaryVaspDetails()),
                 $response->getItemName(),
                 $response->getInvoiceSurchargeAmount(),
                 $response->getInvoiceAmountWithSurcharge(),
-                $response->getInvoiceSurchargePercent(),
-                BeneficiaryVaspDetails::fromArray($response->getBeneficiaryVaspDetails())
+                $response->getInvoiceSurchargePercent()
             );
 
             $this->logger->info('StartPayment entrypoint finished.');

@@ -2,11 +2,11 @@
   "name": "forumpay/forumpay-opencart",
   "description": "ForumPay Crypto Payments for OpenCart",
   "type": "opencart-module",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "license": "OSL-3.0",
   "require": {
     "php": ">=7.4",
-    "forumpay/payment-gateway-php-client": "1.6.0",
+    "forumpay/payment-gateway-php-client": "1.7.0",
     "psr/log":"^1.1.4",
     "ext-json": "*"
   },

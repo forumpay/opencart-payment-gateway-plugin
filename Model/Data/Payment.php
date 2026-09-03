@@ -88,6 +88,18 @@ class Payment
     private array $notices;
 
     /**
+     * @var string
+     */
+    private string $statsToken;
+
+    /**
+     * WalletConnect token for initiating WC session
+     *
+     * @var string|null
+     */
+    private ?string $wcToken;
+
+    /**
      * Item name being purchased
      *
      * @var string|null
@@ -136,11 +148,13 @@ class Payment
      * @param string $qrImg
      * @param string $qrAltImg
      * @param array $notices
+     * @param string $statsToken
+     * @param string|null $wcToken
+     * @param BeneficiaryVaspDetails|null $beneficiaryVaspDetails
      * @param string|null $itemName
      * @param string|null $invoiceSurchargeAmount
      * @param string|null $invoiceAmountWithSurcharge
      * @param string|null $invoiceSurchargePercent
-     * @param BeneficiaryVaspDetails|null $beneficiaryVaspDetails
      */
     public function __construct(
         string $paymentId,
@@ -154,11 +168,13 @@ class Payment
         string $qrImg,
         string $qrAltImg,
         array $notices = [],
+        string $statsToken = '',
+        ?string $wcToken = null,
+        ?BeneficiaryVaspDetails $beneficiaryVaspDetails = null,
         ?string $itemName = null,
         ?string $invoiceSurchargeAmount = null,
         ?string $invoiceAmountWithSurcharge = null,
-        ?string $invoiceSurchargePercent = null,
-        ?BeneficiaryVaspDetails $beneficiaryVaspDetails = null
+        ?string $invoiceSurchargePercent = null
     ) {
         $this->paymentId = $paymentId;
         $this->address = $address;
@@ -171,11 +187,13 @@ class Payment
         $this->qrImg = $qrImg;
         $this->qrAltImg = $qrAltImg;
         $this->notices = $notices;
+        $this->statsToken = $statsToken;
+        $this->wcToken = $wcToken;
+        $this->beneficiaryVaspDetails = $beneficiaryVaspDetails;
         $this->itemName = $itemName;
         $this->invoiceSurchargeAmount = $invoiceSurchargeAmount;
         $this->invoiceAmountWithSurcharge = $invoiceAmountWithSurcharge;
         $this->invoiceSurchargePercent = $invoiceSurchargePercent;
-        $this->beneficiaryVaspDetails = $beneficiaryVaspDetails;
     }
 
     /**
@@ -307,6 +325,22 @@ class Payment
     }
 
     /**
+     * @return string
+     */
+    public function getStatsToken(): string
+    {
+        return $this->statsToken;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getWcToken(): ?string
+    {
+        return $this->wcToken;
+    }
+
+    /**
      * Return associative array of all the properties
      *
      * @return array
@@ -328,11 +362,13 @@ class Payment
                 $this->notices
             ),
             'payment_id' => $this->paymentId,
+            'stats_token' => $this->statsToken,
+            'wc_token' => $this->wcToken,
+            'beneficiary_vasp_details' => $this->beneficiaryVaspDetails?->toArray(),
             'item_name' => $this->itemName,
             'invoice_surcharge_amount' => $this->invoiceSurchargeAmount,
             'invoice_amount_with_surcharge' => $this->invoiceAmountWithSurcharge,
             'invoice_surcharge_percent' => $this->invoiceSurchargePercent,
-            'beneficiary_vasp_details' => $this->beneficiaryVaspDetails?->toArray(),
         ];
     }
 }
